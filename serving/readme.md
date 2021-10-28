@@ -6,7 +6,7 @@
 ```
 docker pull tensorflow/serving:2.6.0
 
-MODEL_PATH="$(pwd)/model/base_line/"
+MODEL_PATH="$(pwd)/models/base_line_index/"
 MODEL_NAME=base_line
 docker run -p 8501:8501 \
   --mount type=bind,source=${MODEL_PATH},target=/models/${MODEL_NAME} \
@@ -22,20 +22,21 @@ curl -X POST http://localhost:8501/v1/models/${MODEL_NAME}:predict \
 ```
 ### Hybrid model
 ```
-docker pull tensorflow/serving:2.6.0
+docker pull google/tf-serving-scann:2.6.0
 
-MODEL_PATH="$(pwd)/model/contextual_model/"
-MODEL_NAME=contextual_model
+
+MODEL_PATH="$(pwd)/models/context_simple_index/"
+MODEL_NAME=context_model
 docker run -p 8501:8501 \
   --mount type=bind,source=${MODEL_PATH},target=/models/${MODEL_NAME} \
   -e MODEL_NAME=${MODEL_NAME} \
-  -t tensorflow/serving
+  -t google/tf-serving-scann:2.6.0
 ```
 
 ```
 curl -X POST http://localhost:8501/v1/models/${MODEL_NAME}:predict \
   --header "Content-Type: application/json" \
-  --data '{"instances": [{"user_id": "2222", "dow": "1", "hod": "16"}]}'
+  --data '{"instances": [{"user_id": 2222, "dow": 1, "hod": 16}]}'
 
 ```
 
