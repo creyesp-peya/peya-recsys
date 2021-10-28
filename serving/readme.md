@@ -40,7 +40,7 @@ Response
 docker pull google/tf-serving-scann:2.6.0
 
 
-MODEL_PATH="$(pwd)/models/context_simple_index/"
+MODEL_PATH="$(pwd)/models/context_simple_model/index_model/"
 MODEL_NAME=context_model
 docker run -p 8501:8501 \
   --mount type=bind,source=${MODEL_PATH},target=/models/${MODEL_NAME} \
@@ -51,7 +51,7 @@ Request
 ```
 curl -X POST http://localhost:8501/v1/models/${MODEL_NAME}:predict \
   --header "Content-Type: application/json" \
-  --data '{"instances": [{"user_id": 2222, "dow": 1, "hod": 16}]}'
+  --data '{"instances": [{"user_id": 2404031, "dow": 7, "hod": 11}]}'
 ```
 Response
 ```bash
