@@ -1,7 +1,3 @@
-# peya-recsys
-Recommendation system MVP in peya dataton
-
-
 # Product recommendation
 This repository contains all code and file that were used to build a recommendation system
 in the context of the Dataton challenge at PedidosYa.
@@ -10,14 +6,14 @@ The main idea is build a Implicit Recommendation System using the interactions b
 in particular, we use the data of all order of Markets in Argentina.
 
 
-# Index
+# Project Structure
 
-* **data:** It contains the queries that create our source tables.
-* **experiments:** It has all the jupyter notebooks that train our models.
-* **exploratory_data_analysis:** All the different analysis in notebooks that we made to support our hypothesis.
-* **metrics:** It has a notebook that calculate hit_rate and MAP@k for a specific model in test.
-* **models:** It contains our trained models. Some of them are too big for Github, so we uploaded them in Google Drive [here](https://drive.google.com/drive/folders/18Tm1gSydWOFJkPzdiI6MXMsVPCcKPEWm?usp=sharing).
-* **serving:** Deployment of models
+* [**data:**](data) It contains queries that create our data source tables.
+* [**experiments:**](experiments) It has all jupyter notebooks that train our models.
+* [**exploratory_data_analysis:**](exploratory_data_analysis) All the different analysis in notebooks that we made to support our hypothesis. Additional EDA was made in [Data Studio](https://datastudio.google.com/reporting/baa6cf57-a39c-4be7-8de5-f73d2cf36976/page/rMrcC/edit)
+* [**metrics:**](metrics) It has a notebook that calculate hit_rate and MAP@k for a specific model in test.
+* [**models:**](models) It contains our trained models. Some of them are too big for Github, so we uploaded them to Google Drive [here](https://drive.google.com/drive/folders/18Tm1gSydWOFJkPzdiI6MXMsVPCcKPEWm?usp=sharing).
+* [**serving:**](serving) It contain examples of how to deploy the models using docker and tensorflow serving. 
 
 
 # Model Framework
