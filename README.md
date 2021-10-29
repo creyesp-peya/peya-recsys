@@ -16,7 +16,7 @@ in particular, we use the data of all order of Markets in Argentina.
 * **experiments:** It has all the jupyter notebooks that train our models.
 * **exploratory_data_analysis:** All the different analysis in notebooks that we made to support our hypothesis.
 * **metrics:** It has a notebook that calculate hit_rate and MAP@k for a specific model in test.
-* **models:** It contains our trained models. Some of them are too big for Github, so we uploaded them in Google Drive [here]https://drive.google.com/drive/folders/18Tm1gSydWOFJkPzdiI6MXMsVPCcKPEWm?usp=sharing).
+* **models:** It contains our trained models. Some of them are too big for Github, so we uploaded them in Google Drive [here](https://drive.google.com/drive/folders/18Tm1gSydWOFJkPzdiI6MXMsVPCcKPEWm?usp=sharing).
 * **serving:** Deployment of models
 
 
