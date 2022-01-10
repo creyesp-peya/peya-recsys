@@ -1,24 +1,8 @@
+import os
+
 import tensorflow as tf
-from model import TwoTowerCF, TwoTowerCFContext
 
-
-def two_tower_cf():
-    users = tf.random.uniform(shape=[100], minval=1, maxval=10, dtype=tf.int32)
-    products = tf.random.uniform(shape=[100], minval=1, maxval=1000, dtype=tf.int32)
-    user_ids = tf.unique(users).y
-    product_ids = tf.unique(products).y
-
-    dataset = tf.data.Dataset.from_tensor_slices(
-        {
-            "user_id": users,
-            "product_id": products
-        }
-    )
-    dataset = dataset.batch(8)
-
-    model = TwoTowerCF(user_ids, product_ids)
-    model.compile(optimizer=tf.keras.optimizers.Adagrad(learning_rate=0.1))
-    history = model.fit(dataset, epochs=5)
+from recsys.model import TwoTowerCFContext
 
 
 def two_tower_context():
@@ -51,10 +35,18 @@ def two_tower_context():
         category_ids=category_ids,
         brand_ids=brand_ids,
     )
-    model.compile(optimizer=tf.keras.optimizers.Adagrad(learning_rate=0.1), run_eagerly=True)
-    history = model.fit(dataset, epochs=5)
+    model.compile(
+        optimizer=tf.keras.optimizers.Adagrad(learning_rate=0.1),
+        # run_eagerly=True
+    )
+    model.fit(dataset, epochs=1)
+
+    output_path = 'models/test/'
+    query_model_path = os.path.join(output_path, "context_model", "query_model")
+    if not os.path.exists(query_model_path):
+        os.makedirs(query_model_path)
+    model.query_model.save(query_model_path)
 
 
 if __name__ == "__main__":
-    # two_tower_cf()
     two_tower_context()

@@ -11,9 +11,14 @@ class TwoTowerCF(tfrs.Model):
             self,
             user_ids: tf.keras.Model,
             product_ids: tf.keras.Model,
+            norm_embedding: bool = True,
+            temperature: float = 1.0,
+            embedding_dimension: int = 32,
     ):
         super().__init__()
-        self.embedding_dimension = 32
+        self.temperature = temperature
+        self.norm_embedding = norm_embedding
+        self.embedding_dimension = embedding_dimension
         self.user_model = self._set_user_model(user_ids)
         self.product_model = self._set_user_model(product_ids)
         self.retrieval_task = tfrs.tasks.Retrieval(
@@ -24,11 +29,12 @@ class TwoTowerCF(tfrs.Model):
         inputs = tf.keras.Input(shape=(), dtype=tf.dtypes.int32, name="user_id")
         lookup = tf.keras.layers.IntegerLookup(
             vocabulary=tf.convert_to_tensor(user_ids),
-            mask_token=None
+            mask_token=None,
+            name="user_lookup"
         )
-        embedding = tf.keras.layers.Embedding(len(user_ids) + 1, self.embedding_dimension)
+        embedding = tf.keras.layers.Embedding(len(user_ids) + 1, self.embedding_dimension, name="user_embedding")
         outputs = embedding(lookup(inputs))
-        model = tf.keras.Model(inputs=inputs, outputs=outputs)
+        model = tf.keras.Model(inputs=inputs, outputs=outputs, name="two_tower_cf")
 
         return model
 
@@ -51,6 +57,11 @@ class TwoTowerCF(tfrs.Model):
     ) -> tf.Tensor:
         user_embeddings = self.user_model(features["user_id"])
         product_embeddings = self.product_model(features["product_id"])
+
+        if self.norm_embedding:
+            user_embeddings = user_embeddings / tf.sqrt(tf.reduce_sum(user_embeddings**2))
+            user_embeddings = user_embeddings / tf.sqrt(tf.reduce_sum(user_embeddings**2))
+
         compute_metrics = False if training else True
         loss = self.retrieval_task.call(
             user_embeddings,
