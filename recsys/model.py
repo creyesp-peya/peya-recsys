@@ -9,20 +9,24 @@ class TwoTowerCF(tfrs.Model):
 
     def __init__(
             self,
-            user_ids: tf.keras.Model,
-            product_ids: tf.keras.Model,
+            user_ids: list,
+            product_ids: list,
             norm_embedding: bool = True,
             temperature: float = 1.0,
+            sampling_probability=False,
             embedding_dimension: int = 32,
     ):
         super().__init__()
-        self.temperature = temperature
         self.norm_embedding = norm_embedding
+        self.temperature = temperature
+        self.sampling_probability = sampling_probability
         self.embedding_dimension = embedding_dimension
+
         self.user_model = self._set_user_model(user_ids)
         self.product_model = self._set_user_model(product_ids)
         self.retrieval_task = tfrs.tasks.Retrieval(
-            metrics=None
+            metrics=None,
+            temperature=self.temperature
         )
 
     def _set_user_model(self, user_ids):
@@ -63,11 +67,20 @@ class TwoTowerCF(tfrs.Model):
             user_embeddings = user_embeddings / tf.sqrt(tf.reduce_sum(user_embeddings**2))
 
         compute_metrics = False if training else True
-        loss = self.retrieval_task.call(
-            user_embeddings,
-            product_embeddings,
-            compute_metrics=compute_metrics
-        )
+
+        if self.sampling_probability:
+            loss = self.retrieval_task.call(
+                user_embeddings,
+                product_embeddings,
+                compute_metrics=compute_metrics,
+                candidate_sampling_probability=features["candidate_sampling_probability"],
+            )
+        else:
+            loss = self.retrieval_task.call(
+                user_embeddings,
+                product_embeddings,
+                compute_metrics=compute_metrics
+            )
         return loss
 
 
@@ -87,14 +100,16 @@ class QueryModel(tf.keras.Model):
         dow_input = tf.keras.Input(shape=(), dtype=tf.int32, name="dow")
         # dow_lookup = tf.keras.layers.IntegerLookup(vocabulary=[k for k in range(7)])
         # dow_emb = tf.keras.layers.Embedding(8, 4)
-        dow_onehot = tf.keras.layers.CategoryEncoding(num_tokens=7, output_mode="one_hot")
         # dow_output = dow_emb(dow_lookup(dow_input))
+        dow_onehot = tf.keras.layers.CategoryEncoding(num_tokens=7, output_mode="one_hot")
         dow_output = dow_onehot(dow_input)
 
         hod_input = tf.keras.Input(shape=(), dtype=tf.int32, name="hod")
-        hod_lookup = tf.keras.layers.IntegerLookup(vocabulary=[k for k in range(24)])
-        hod_emb = tf.keras.layers.Embedding(24, 4)
-        hod_output = hod_emb(hod_lookup(hod_input))
+        # hod_lookup = tf.keras.layers.IntegerLookup(vocabulary=[k for k in range(24)])
+        # hod_emb = tf.keras.layers.Embedding(24, 4)
+        # hod_output = hod_emb(hod_lookup(hod_input))
+        hod_onehot = tf.keras.layers.CategoryEncoding(num_tokens=24, output_mode="one_hot")
+        hod_output = hod_onehot(hod_input)
 
         output = tf.concat([
             user_output,
