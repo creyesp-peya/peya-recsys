@@ -3,6 +3,9 @@
 # https://arxiv.org/pdf/1503.03832.pdf
 
 import tensorflow as tf
+# tf.config.run_functions_eagerly(True)
+# tf.data.experimental.enable_debug_mode()
+
 
 examples = {
     "product_a": [
