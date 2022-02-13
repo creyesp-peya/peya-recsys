@@ -9,7 +9,7 @@ def two_tower_cf():
     users = tf.random.uniform(shape=[1000], minval=1, maxval=10, dtype=tf.int32)
     items = tf.random.uniform(shape=[1000], minval=1, maxval=1000, dtype=tf.int32)
     user_ids = tf.unique(users).y
-    product_ids = tf.unique(items).y
+    item_ids = tf.unique(items).y
 
     dataset = tf.data.Dataset.from_tensor_slices(
         {
@@ -19,7 +19,7 @@ def two_tower_cf():
     )
     dataset = dataset.batch(8)
 
-    model = TwoTowerCF(user_ids, product_ids)
+    model = TwoTowerCF(user_ids, item_ids)
     model.query_model.summary()
     model.candidate_model.summary()
     model.compile(optimizer=tf.keras.optimizers.Adagrad(learning_rate=0.1))

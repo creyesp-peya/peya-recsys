@@ -15,7 +15,7 @@ CREATE OR REPLACE TABLE `peya-food-and-groceries.user_fiorella_dirosario.user_at
             SELECT
                 DISTINCT
                 user_id
-            FROM `peya-food-and-groceries.user_fiorella_dirosario.user_order_sep2020_sep2021`
+            FROM `peya-food-and-groceries.user_fiorella_dirosario.order_sep2020_sep2021`
         )
     SELECT
         up.user_id

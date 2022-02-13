@@ -31,7 +31,7 @@ class TwoTowerCF(tfrs.Model):
     def _set_query_model(self, user_ids):
         inputs = tf.keras.Input(shape=(), dtype=tf.dtypes.int32, name="user_id")
         lookup = tf.keras.layers.IntegerLookup(
-            vocabulary=tf.convert_to_tensor(user_ids),
+            vocabulary=user_ids,
             mask_token=None,
             name="user_lookup"
         )
@@ -42,9 +42,9 @@ class TwoTowerCF(tfrs.Model):
         return model
 
     def _set_candidate_model(self, item_ids):
-        inputs = tf.keras.Input(shape=(), dtype=tf.dtypes.int32, name="item_id")
-        lookup = tf.keras.layers.IntegerLookup(
-            vocabulary=tf.convert_to_tensor(item_ids),
+        inputs = tf.keras.Input(shape=(), dtype=tf.dtypes.string, name="item_id")
+        lookup = tf.keras.layers.StringLookup(
+            vocabulary=item_ids,
             mask_token=None
         )
         embedding = tf.keras.layers.Embedding(len(item_ids) + 1, self.embedding_dimension)
