@@ -13,7 +13,7 @@ def two_tower_cf():
     user_ids = tf.unique(users).y
     product_ids = tf.unique(items).y
     _, idx, count = tf.unique_with_counts(items)
-    candidate_sampling_probability = tf.cast(tf.gather(count/tf.reduce_sum(count), idx), dtype=tf.float32)
+    candidate_sampling_probability = tf.cast(tf.gather(count / tf.reduce_sum(count), idx), dtype=tf.float32)
 
     dataset = tf.data.Dataset.from_tensor_slices(
         {

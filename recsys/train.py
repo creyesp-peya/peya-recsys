@@ -6,7 +6,6 @@ import os
 import dask.dataframe as dd
 import tensorflow as tf
 
-
 from recsys import export_model
 from recsys.data import create_dataset, gcs_uri_to_fuse_path
 from recsys.inference import brute_force, scann
@@ -15,11 +14,11 @@ from recsys.utils import get_distribution_strategy, is_chief
 
 
 def train_tensorflow_model(
-    training_data: str,
-    validation_data: str,
-    file_pattern: str,
-    model_params: dict,
-    model_dir: str,
+        training_data: str,
+        validation_data: str,
+        file_pattern: str,
+        model_params: dict,
+        model_dir: str,
 ):
     """Train a Tensorflow Keras model.
 
@@ -67,7 +66,7 @@ def train_tensorflow_model(
 
     # prepare model params
     default_model_params = dict(
-        batch_size=1024*1,
+        batch_size=1024 * 1,
         epochs=1,
         steps_per_epoch=None,
         loss_fn="MeanSquaredError",
@@ -172,7 +171,7 @@ def create_arg_parser() -> argparse.ArgumentParser:
         type=str,
         required=False,
         help="If train./valid. are folders, specify the file pattern to filter files "
-        "e.g. 'files-*.csv'.",
+             "e.g. 'files-*.csv'.",
     )
     parser_arg.add_argument(
         "--model_dir", required=False, type=str, default=os.environ.get("AIP_MODEL_DIR")

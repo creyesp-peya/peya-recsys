@@ -3,6 +3,7 @@
 ## Run in docker
 
 ### Base model
+
 ```
 docker pull google/tf-serving-scann:2.6.0
 
@@ -13,14 +14,18 @@ docker run -p 8501:8501 \
   -e MODEL_NAME=${MODEL_NAME} \
   -t google/tf-serving-scann:2.6.0
 ```
+
 Request
+
 ```
 curl -X POST http://localhost:8501/v1/models/${MODEL_NAME}:predict \
   --header "Content-Type: application/json" \
   --data '{"instances": ["2222"]}'
 
 ```
+
 Response
+
 ```bash
 {
     "predictions": [
@@ -31,11 +36,15 @@ Response
     ]
 }
 ```
+
 Response
+
 ```bash
 
 ```
+
 ### Hybrid model
+
 ```
 docker pull google/tf-serving-scann:2.6.0
 
@@ -47,13 +56,17 @@ docker run -p 8501:8501 \
   -e MODEL_NAME=${MODEL_NAME} \
   -t google/tf-serving-scann:2.6.0
 ```
+
 Request
+
 ```
 curl -X POST http://localhost:8501/v1/models/${MODEL_NAME}:predict \
   --header "Content-Type: application/json" \
   --data '{"instances": [{"user_id": 2404031, "dow": 7, "hod": 11}]}'
 ```
+
 Response
+
 ```bash
 {
     "predictions": [
@@ -66,9 +79,12 @@ Response
 ```
 
 ## Documentation
+
 ### tfserving
+
 * https://www.tensorflow.org/tfx/serving/
 
 ### Custom serving modes
+
 * https://towardsdatascience.com/how-to-serve-different-model-versions-using-tensorflow-serving-de65312e58f7
 * 

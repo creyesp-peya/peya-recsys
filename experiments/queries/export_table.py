@@ -1,4 +1,5 @@
 from google.cloud import bigquery
+
 client = bigquery.Client()
 bucket_name = 'bucket-one'
 project = "project-one"

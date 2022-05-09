@@ -28,7 +28,6 @@ def gcs_uri_to_fuse_path(
     return Path(gcs_uri)
 
 
-
 def process_gcs_uri(uri: str) -> (str, str, str, str):
     '''
     Receives a Google Cloud Storage (GCS) uri and breaks it down to the scheme, bucket, path and file

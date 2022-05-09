@@ -25,11 +25,11 @@ base["product_name"] = base["product_name"].fillna("").str.replace("\n", " ")
 base["product_description"] = base["product_description"].fillna("").str.replace("\n", " ")
 
 (
-    base["section_name"].fillna("")
-    + " "
-    + base["product_name"].fillna("")
-    + " "
-    + base["product_description"].fillna("")
+        base["section_name"].fillna("")
+        + " "
+        + base["product_name"].fillna("")
+        + " "
+        + base["product_description"].fillna("")
 ).str.replace("\n", " ").to_csv('../data/product.csv', index=False, sep=";", header=False)
 
 pairs_raw = pd.read_csv("../data/pairs.csv", chunksize=100_000)

@@ -2,16 +2,16 @@
 # https://keras.io/examples/vision/siamese_network/
 # https://arxiv.org/pdf/1503.03832.pdf
 import os
+
 import tensorflow as tf
 
 BATCH_SIZE = 1024
-
 
 products = tf.data.TextLineDataset("../data/product.csv").batch(BATCH_SIZE)
 
 file_path_patter = "../data/pairs/"
 files = [file_path_patter + k for k in os.listdir(file_path_patter)]
-cutoff = int(len(files)*0.9)
+cutoff = int(len(files) * 0.9)
 # train_files = [k for k in files[:cutoff]]
 # val_files = [k for k in files[cutoff:]]
 train_files = ["../data/pairs/dataset-00000.csv"]
@@ -60,7 +60,6 @@ val_ds = val_ds.map(lambda x, y: (
 next(products.take(1).as_numpy_iterator())
 next(train_ds.take(1).as_numpy_iterator())
 
-
 MAX_VOCABULARY = 10000
 MAX_SEQUENCE_LENGTH = 32
 
@@ -74,7 +73,6 @@ vectorize_layer = tf.keras.layers.TextVectorization(
     name="text_vectorization",
 )
 vectorize_layer.adapt(products)
-
 
 embedding = tf.keras.layers.Embedding(
     input_dim=len(vectorize_layer.get_vocabulary()),
@@ -92,7 +90,6 @@ input_b = tf.keras.Input(shape=(None,), dtype=tf.string, name="product_b")
 output_a = dense1(bidirectional(embedding(vectorize_layer(input_a))))
 output_b = dense1(bidirectional(embedding(vectorize_layer(input_b))))
 output = dotted([output_a, output_b])
-
 
 model = tf.keras.Model(inputs=[input_a, input_b], outputs=output)
 model.summary()

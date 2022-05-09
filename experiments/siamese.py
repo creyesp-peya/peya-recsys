@@ -3,6 +3,7 @@
 # https://arxiv.org/pdf/1503.03832.pdf
 
 import tensorflow as tf
+
 # tf.config.run_functions_eagerly(True)
 # tf.data.experimental.enable_debug_mode()
 
@@ -29,7 +30,8 @@ examples = {
 }
 
 text_dataset = tf.data.Dataset.from_tensor_slices(examples)
-X = text_dataset.map(lambda x: {"product_a": x["product_a"], "product_b": x["product_b"]}).batch(4).prefetch(tf.data.AUTOTUNE)
+X = text_dataset.map(lambda x: {"product_a": x["product_a"], "product_b": x["product_b"]}).batch(4).prefetch(
+    tf.data.AUTOTUNE)
 y = text_dataset.map(lambda x: x["target"]).batch(4).prefetch(tf.data.AUTOTUNE)
 dataset = tf.data.Dataset.zip((X, y))
 vocab = text_dataset.flat_map(lambda x: tf.data.Dataset.from_tensor_slices([x["product_a"], x["product_b"]])).batch(4)
@@ -67,7 +69,6 @@ dotted = tf.keras.layers.Dot(axes=1, name="similarity")
 output_a = dense1(bidirectional(embedding(vectorize_layer(input_a))))
 output_b = dense1(bidirectional(embedding(vectorize_layer(input_b))))
 output = dotted([output_a, output_b])
-
 
 model = tf.keras.Model(inputs=[input_a, input_b], outputs=output)
 model.summary()
