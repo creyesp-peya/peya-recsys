@@ -1,27 +1,30 @@
+import logging
+
 import tensorflow as tf
 
 
-def export_index(output_path, index, signature="concat"):
+def export_index(output_path, index, use_scann=False):
     @tf.function(input_signature=[tf.TensorSpec([None, ], dtype=tf.int32)])
     def signature_default(input_1):
         score, products = index.call(input_1)
         return {
-            "score": score,
+            "scores": score,
             "items": products,
         }
 
-    @tf.function(input_signature=[tf.TensorSpec([None, ], dtype=tf.int32)])
-    def signature_concat(input_1):
-        score, products = index.call(input_1)
-        return tf.transpose(tf.concat([tf.as_string(products), tf.as_string(score)], axis=0))
-
+    logging.info(f"Save model to: {output_path}")
     tf.saved_model.save(
         index,
         output_path,
-        options=tf.saved_model.SaveOptions(namespace_whitelist=["Scann"]),
+        options=tf.saved_model.SaveOptions(namespace_whitelist=["Scann"]) if use_scann else None,
         signatures={
-            'serving_default': signature_concat if signature == "concat" else signature_default,
-            'serving_base': signature_default,
-            'serving_concat': signature_concat,
+            'serving_default': signature_default,
         }
+    )
+
+
+def export_tf_model(output_path, model):
+    tf.saved_model.save(
+        model,
+        output_path,
     )

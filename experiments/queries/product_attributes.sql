@@ -14,7 +14,6 @@ CREATE OR REPLACE TABLE `peya-food-and-groceries.user_fiorella_dirosario.product
                  LEFT JOIN `peya-data-origins-pro.cl_catalogue.product` cp ON cp.gtin = od.gtin
                  LEFT JOIN `peya-data-origins-pro.cl_catalogue.brand` cb ON cb.id = cp.brand_id
                  LEFT JOIN `peya-data-origins-pro.cl_catalogue.category` cc ON cc.id = cp.category_id
-
                  LEFT JOIN `peya-data-origins-pro.cl_catalogue.brand_group` cbg ON cbg.id = cb.group_id
         GROUP BY 1
     )

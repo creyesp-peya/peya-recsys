@@ -1,227 +1,115 @@
-from google.cloud import bigquery
-from google.cloud.bigquery_storage_v1beta1 import BigQueryStorageClient
-import numpy as np
-import pandas as pd
+import logging
+import os
+from pathlib import Path
+
+import tensorflow as tf
+from google.cloud import storage
+from tensorflow.data import Dataset
+
+from recsys.config import PROJECT_ID
 
 
-def markets():
-    MINIMUM_PRODUCTS = 5
-    MINIMUM_ORDERS = 2
-    data_project_id = "peya-food-and-groceries"
-    data_dataset_id = "user_fiorella_dirosario"
-    data_table_orders = "order_sep2020_sep2021"
-    data_table_order_details = "order_details_sep2020_sep2021"
-    data_table_users = "attributes_sep2020_sep2021"
-    data_table_products = "product_attributes_sep2020_sep2021"
+def gcs_uri_to_fuse_path(
+        gcs_uri: str, gcs_prefix: str = "gs://", fuse_prefix: str = "/gcs/"
+) -> Path:
+    """Change "gs://" to "/gcs/" in GCS URI to support FUSE in Vertex AI. See:
+    https://cloud.google.com/vertex-ai/docs/training/code-requirements#fuse
 
-    interaction_query_train = f"""
-    DECLARE minimum_products INT64;
-    DECLARE minimum_orders INT64;
-    
-    SET minimum_products = {MINIMUM_PRODUCTS};
-    SET minimum_orders = {MINIMUM_ORDERS};
-    
-    WITH products_by_user AS (
-        SELECT
-            uo.user_id
-          , COUNT(DISTINCT gtin) as cant_products
-          , COUNT(DISTINCT uo.order_id) as cant_orders
-          , MAX(uo.order_id) as last_order_id
-        FROM 
-          `{data_project_id}.{data_dataset_id}.{data_table_orders}` as uo
-        JOIN 
-          `{data_project_id}.{data_dataset_id}.{data_table_order_details}` as od
-        ON 
-          uo.order_id = od.order_id  
-        WHERE 
-          uo.user_id IS NOT NULL
-          AND od.gtin IS NOT NULL
-          AND od.has_gtin = 1
-        GROUP BY 1
-    )
-    SELECT DISTINCT
-        CAST(uo.user_id AS STRING) AS user_id
-      , CAST(od.gtin AS STRING) AS product_id
-      --, uo.order_id
-      --, uo.timestamp
-    FROM 
-      `{data_project_id}.{data_dataset_id}.{data_table_orders}` as uo
-    JOIN 
-      `{data_project_id}.{data_dataset_id}.{data_table_order_details}` as od
-    ON uo.order_id = od.order_id
-    LEFT JOIN products_by_user pbu ON pbu.user_id = uo.user_id
-    WHERE uo.user_id IS NOT NULL
-      AND od.gtin IS NOT NULL
-      AND od.has_gtin = 1
-      AND cant_products >= minimum_products
-      AND cant_orders >= minimum_orders
-      AND uo.order_id != pbu.last_order_id 
+    Args:
+        gcs_uri (str): GCS URI
+        gcs_prefix (str): expected GCS prefix
+        fuse_prefix (str): expected FUSE prefix
+
+    Returns:
+        Path: FUSE compatible path
+    """
+    if gcs_uri.startswith(gcs_prefix):
+        return Path(fuse_prefix + gcs_uri[len(gcs_prefix):])
+    return Path(gcs_uri)
+
+
+
+def process_gcs_uri(uri: str) -> (str, str, str, str):
+    '''
+    Receives a Google Cloud Storage (GCS) uri and breaks it down to the scheme, bucket, path and file
+
+            Parameters:
+                    uri (str): GCS uri
+
+            Returns:
+                    scheme (str): uri scheme
+                    bucket (str): uri bucket
+                    path (str): uri path
+                    file (str): uri file
+    '''
+    url_arr = uri.split("/")
+    if "." not in url_arr[-1]:
+        file = ""
+    else:
+        file = url_arr.pop()
+    scheme = url_arr[0]
+    bucket = url_arr[2]
+    path = "/".join(url_arr[3:])
+    path = path[:-1] if path.endswith("/") else path
+
+    return scheme, bucket, path, file
+
+
+def download_file_from_gcs(source_file: str, output_folder: str):
+    scheme, bucket, path, file = process_gcs_uri(source_file)
+    if scheme != "gs:":
+        raise ValueError("URI scheme must be gs")
+
+    # Upload the model to GCS
+    b = storage.Client(project=PROJECT_ID).bucket(bucket)
+    blob = b.blob(os.path.join(path, file))
+    output_file = os.path.join(output_folder, file)
+    blob.download_to_filename(output_file)
+
+    return output_file
+
+
+def create_dataset(
+        input_data: str, model_params: dict, file_pattern: str = "", prefetch: bool = True
+) -> Dataset:
+    """Create a TF Dataset from input csv files.
+
+    Args:
+        input_data (Input[Dataset]): Train/Valid data in CSV format
+        label_name (str): Name of column containing the labels
+        model_params (dict): model parameters
+        file_pattern (str): Read data from one or more files. If empty, then
+            training and validation data is read from single file respectively.
+            For multiple files, use a pattern e.g. "files-*.csv".
+    Returns:
+        dataset (TF Dataset): TF dataset where each element is a (features, labels)
+            tuple that corresponds to a batch of CSV rows
     """
 
-    interaction_query_test = f"""
-    DECLARE minimum_products INT64;
-    DECLARE minimum_orders INT64;
-    
-    SET minimum_products = {MINIMUM_PRODUCTS};
-    SET minimum_orders = {MINIMUM_ORDERS};
-    
-    WITH products_by_user AS (
-        SELECT
-            uo.user_id
-          , COUNT(DISTINCT gtin) as cant_products
-          , COUNT(DISTINCT uo.order_id) as cant_orders
-          , MAX(uo.order_id) as last_order_id
-        FROM 
-          `{data_project_id}.{data_dataset_id}.{data_table_orders}` as uo
-        JOIN 
-          `{data_project_id}.{data_dataset_id}.{data_table_order_details}` as od
-        ON 
-          uo.order_id = od.order_id  
-        WHERE 
-          uo.user_id IS NOT NULL
-          AND od.gtin IS NOT NULL
-          AND od.has_gtin = 1
-        GROUP BY 1
-    )
-    SELECT DISTINCT
-        CAST(uo.user_id AS STRING) AS user_id
-      , CAST(od.gtin AS STRING) AS product_id
-      --, uo.order_id
-      --, uo.timestamp
-    FROM 
-      `{data_project_id}.{data_dataset_id}.{data_table_orders}` as uo
-    JOIN 
-      `{data_project_id}.{data_dataset_id}.{data_table_order_details}` as od
-    ON
-      uo.order_id = od.order_id
-    LEFT JOIN 
-      products_by_user pbu 
-    ON 
-      pbu.user_id = uo.user_id
-    WHERE 
-      uo.user_id IS NOT NULL
-      AND od.gtin IS NOT NULL
-      AND od.has_gtin = 1
-      AND cant_products >= minimum_products
-      AND cant_orders >= minimum_orders
-      AND uo.order_id = pbu.last_order_id 
-    """
+    # shuffle & shuffle_buffer_size added to rearrange input data
+    # passed into model training
+    # num_rows_for_inference is for auto detection of datatypes
+    # while creating the dataset.
+    # If a float column has a high proportion of integer values (0/1 etc),
+    # the method wrongly detects it as a tf.int32 which fails during training time,
+    # hence the high hardcoded value (default is 100)
 
-    product_query = f"""
-    DECLARE minimum_products INT64;
-    DECLARE minimum_orders INT64;
-    
-    SET minimum_products = {MINIMUM_PRODUCTS};
-    SET minimum_orders = {MINIMUM_ORDERS};
-    
-    
-    WITH products_by_user AS (
-        SELECT
-            uo.user_id
-          , COUNT(DISTINCT od.gtin) as cant_products
-          , COUNT(DISTINCT uo.order_id) as cant_orders
-          , MAX(uo.order_id) as last_order_id
-        FROM 
-          `{data_project_id}.{data_dataset_id}.{data_table_orders}` as uo
-        JOIN 
-          `{data_project_id}.{data_dataset_id}.{data_table_order_details}` as od
-        ON 
-          uo.order_id = od.order_id  
-        WHERE 
-          uo.user_id IS NOT NULL
-          AND od.gtin IS NOT NULL
-          AND od.has_gtin = 1
-        GROUP BY 1
-        HAVING 
-          cant_products >= minimum_products AND cant_orders >= minimum_orders
-    )
-    , products AS (
-      SELECT DISTINCT
-        od.gtin
-      FROM
-        `{data_project_id}.{data_dataset_id}.{data_table_order_details}` od
-      JOIN 
-        `{data_project_id}.{data_dataset_id}.{data_table_orders}` uo ON uo.order_id = od.order_id
-      JOIN 
-        products_by_user pbu ON pbu.user_id = uo.user_id
-      WHERE od.gtin IS NOT NULL AND od.has_gtin = 1
-    )
-    
-    SELECT 
-        CAST(pa.gtin AS STRING) AS product_id
-      , IF(pa.category_id IS NULL, "", CAST(pa.category_id AS STRING))  AS category_id
-      , IF(pa.brand_id IS NULL, "", CAST(pa.brand_id AS STRING)) AS brand_id
-      , CAST(pa.age AS STRING) AS age
-    FROM 
-      `{data_project_id}.{data_dataset_id}.{data_table_products}` pa
-    JOIN products p ON p.gtin = pa.gtin
-    """
+    if file_pattern:
+        input_data = os.path.join(input_data, file_pattern)
 
-    user_query = f"""
-    DECLARE minimum_products INT64;
-    DECLARE minimum_orders INT64;
-    
-    SET minimum_products = {MINIMUM_PRODUCTS};
-    SET minimum_orders = {MINIMUM_ORDERS};
-    
-    WITH products_by_user AS (
-        SELECT
-        uo.user_id
-        , COUNT(DISTINCT gtin) as cant_products
-        , COUNT(DISTINCT uo.order_id) as cant_orders
-        , MAX(uo.order_id) as last_order_id
-        FROM 
-        `{data_project_id}.{data_dataset_id}.{data_table_orders}` as uo
-        JOIN 
-        `{data_project_id}.{data_dataset_id}.{data_table_order_details}` as od
-        ON uo.order_id = od.order_id  
-        WHERE uo.user_id IS NOT NULL
-        AND od.gtin IS NOT NULL
-        AND od.has_gtin = 1
-        GROUP BY 1
-    )
-    SELECT 
-        CAST(ua.user_id AS STRING) AS user_id
-      , CAST(ua.city_id AS STRING) AS city_id
-      , ua.platform
-      , IF(ua.segment IS NULL, "Not set", ua.segment) AS segment
-    FROM 
-      `{data_project_id}.{data_dataset_id}.{data_table_users}` ua
-    LEFT JOIN products_by_user pbu ON pbu.user_id = ua.user_id
-    WHERE cant_products >= minimum_products
-          AND cant_orders >= minimum_orders
-    """
+    logging.info(f"Creating dataset from CSV file(s) at {input_data}...")
 
-    project_id = "peya-data-analyt-factory-stg"  #@param ["peya-data-analyt-factory-stg", "peya-food-and-groceries", "peya-growth-and-onboarding"]
-    client = bigquery.client.Client(project=project_id)
-    bq_storage_client = BigQueryStorageClient()
-
-    interactions_train = (
-        client.query(interaction_query_train)
-            .result()
-            .to_arrow(bqstorage_client=bq_storage_client)
-            .to_pandas()
+    dataset = tf.data.experimental.make_csv_dataset(
+        file_pattern=str(input_data),
+        batch_size=model_params["batch_size"],
+        num_epochs=1,
+        column_defaults=[tf.int32, tf.string],
+        shuffle=False,
+        shuffle_buffer_size=1000,
+        num_rows_for_inference=20000,
+        num_parallel_reads=tf.data.AUTOTUNE,
+        sloppy=True,
     )
-
-    interactions_test = (
-        client.query(interaction_query_test)
-            .result()
-            .to_arrow(bqstorage_client=bq_storage_client)
-            .to_pandas()
-    )
-
-    users = (
-        client.query(user_query)
-            .result()
-            .to_arrow(bqstorage_client=bq_storage_client)
-            .to_pandas()
-    )
-    products = (
-        client.query(product_query)
-            .result()
-            .to_arrow(bqstorage_client=bq_storage_client)
-            .to_pandas()
-    )
-
-    user_ids = users["user_id"].unique().tolist()
-    product_ids = products["product_id"].unique().tolist()
+    if prefetch:
+        dataset = dataset.prefetch(tf.data.AUTOTUNE)
+    return dataset

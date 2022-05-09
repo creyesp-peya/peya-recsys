@@ -1,24 +1,36 @@
-import tensorflow as tf
-import tensorflow_recommenders as tfrs
 import numpy as np
 import pandas as pd
+import tensorflow as tf
+import tensorflow_recommenders as tfrs
 
 
-def brute_force(model, item_ds):
-    index = tfrs.layers.factorized_top_k.BruteForce(model.query_model)
-    index.index_from_dataset(
-        tf.data.Dataset.zip((item_ds.map(lambda x: x["item_id"]).batch(100), item_ds.batch(100).map(model.candidate_model)))
+def brute_force(query_model, candidate_model, item_ds, k=1000):
+    bruteforce_index = tfrs.layers.factorized_top_k.BruteForce(
+        query_model=query_model,
+        k=k,
+        name="index_bruteforce"
     )
+    bruteforce_index.index_from_dataset(
+        tf.data.Dataset.zip(
+            (item_ds.batch(100), item_ds.batch(100).map(candidate_model)))
+    )
+    bruteforce_index.call(tf.constant([42]))
 
-    return index
+    return bruteforce_index
 
 
-def scann(model, item_ds):
-    scann_index = tfrs.layers.factorized_top_k.ScaNN(model.query_model)
+def scann(query_model, candidate_model, item_ds):
+    scann_index = tfrs.layers.factorized_top_k.ScaNN(
+        query_model=query_model,
+        k=1000,
+        name="index_scann"
+    )
     scann_index.index_from_dataset(
         tf.data.Dataset.zip(
-            (item_ds.map(lambda x: x["item_id"]).batch(100), item_ds.batch(100).map(model.candidate_model)))
+            (item_ds.batch(100), item_ds.batch(100).map(candidate_model)))
     )
+    scann_index.call(tf.constant([42]))
+
     return scann_index
 
 

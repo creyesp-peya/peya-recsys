@@ -1,3 +1,4 @@
+import logging
 from typing import Dict, Text
 
 import tensorflow as tf
@@ -37,7 +38,7 @@ class TwoTowerCF(tfrs.Model):
         )
         embedding = tf.keras.layers.Embedding(len(user_ids) + 1, self.embedding_dimension, name="user_embedding")
         outputs = embedding(lookup(inputs))
-        model = tf.keras.Model(inputs=inputs, outputs=outputs, name="two_tower_cf")
+        model = tf.keras.Model(inputs=inputs, outputs=outputs, name="query_model")
 
         return model
 
@@ -50,7 +51,7 @@ class TwoTowerCF(tfrs.Model):
         embedding = tf.keras.layers.Embedding(len(item_ids) + 1, self.embedding_dimension)
         outputs = embedding(lookup(inputs))
 
-        model = tf.keras.Model(inputs=inputs, outputs=outputs)
+        model = tf.keras.Model(inputs=inputs, outputs=outputs, name="candidate_model")
         return model
 
     def compute_loss(
@@ -229,3 +230,31 @@ class TwoTowerCFContext(tfrs.models.Model):
             compute_metrics=compute_metrics,
         )
         return loss
+
+
+def build_and_compile_model(user_ids: list, item_ids: list, model_params: dict) -> tf.keras.Model:
+    """Build and compile model.
+
+    Args:
+        model_params (dict): model parameters
+        item_ids:
+        user_ids:
+
+    Returns:
+        model (Model): built and compiled model
+    """
+    logging.info(f"Use optimizer {model_params['optimizer']}")
+    optimizer = tf.keras.optimizers.get(model_params["optimizer"])
+    optimizer.learning_rate = model_params["learning_rate"]
+    embedding_dimension = model_params["embedding_dimension"]
+
+    model = TwoTowerCF(user_ids, item_ids, embedding_dimension=embedding_dimension)
+    model.query_model.summary()
+    model.candidate_model.summary()
+    model.compile(
+        # loss=model_params["loss_fn"],
+        optimizer=optimizer,
+        # metrics=model_params["metrics"],
+    )
+
+    return model

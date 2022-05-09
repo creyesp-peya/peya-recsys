@@ -5,7 +5,7 @@ with open('requirements.txt', 'r') as f:
 
 setup(
     name='recsys',
-    version='1.0',
+    version='0.1',
     description='Recommendation system',
     long_description='',
     long_description_content_type="text/markdown",
