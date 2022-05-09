@@ -1,0 +1,4 @@
+prune data/
+prune experiments/
+prune serving/
+prune models/

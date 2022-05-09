@@ -1,9 +1,8 @@
-CREATE OR REPLACE TABLE `peya-food-and-groceries.user_fiorella_dirosario.order_sep2020_sep2021` AS
-SELECT
-    o.user.id as user_id
+CREATE OR REPLACE TABLE ` peya-food-and-groceries.user_fiorella_dirosario.order_sep2020_sep2021 ` AS
+SELECT o.user.id       as user_id
      , o.is_pre_order
-     ,o.pickup
-     ,o.discount_type
+     , o.pickup
+     , o.discount_type
      , o.order_id
      , o.registered_at as timestamp
 FROM `peya-bi-tools-pro.il_core.fact_orders` o
