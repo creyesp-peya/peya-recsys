@@ -134,3 +134,6 @@ dmypy.json
 examples/models/*
 scripts/models/*
 data/*
+!data/cf/sample/train/dataset_0
+!data/cf/sample/test/dataset_0
+models/*
