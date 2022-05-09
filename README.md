@@ -24,6 +24,16 @@ user context (days of the week and hour of the day) and product attributes (bran
 
 <img src="https://1.bp.blogspot.com/-ww8cKT3nIb8/X2pdWAWWNmI/AAAAAAAADl8/pkeFRxizkXYbDGbOcaAnZkorjEuqtrabgCLcBGAsYHQ/s0/TF%2BRecommenders%2B06.gif" width=500>
 
+# How to run
+
+```
+python -m recsys.train \
+  --training_data=data/cf/sample/train/ \
+  --validation_data=data/cf/sample/test/ \
+  --model_dir=models/cf/sample/ \
+  --file_pattern=dataset_*
+```
+
 # Team
 
 * Juan Andreani
