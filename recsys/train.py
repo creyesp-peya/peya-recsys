@@ -63,7 +63,8 @@ def train_tensorflow_model(
                 No of epochs to check for training loss convergence
         model_dir (str): output directory used to save model
     """
-
+    devices = tf.config.list_physical_devices('GPU')
+    logging.info(f"The current training job is using the following physical devices: {devices}")
     # prepare model params
     default_model_params = dict(
         batch_size=1024 * 1,
