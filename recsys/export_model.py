@@ -13,7 +13,7 @@ def export_index(output_path, index, use_scann=False):
         }
 
     logging.info(f"Save model to: {output_path}")
-    tf.saved_model.save(
+    tf.keras.models.save_model(
         index,
         output_path,
         options=tf.saved_model.SaveOptions(namespace_whitelist=["Scann"]) if use_scann else None,
@@ -24,7 +24,7 @@ def export_index(output_path, index, use_scann=False):
 
 
 def export_tf_model(output_path, model):
-    tf.saved_model.save(
+    tf.keras.models.save_model(
         model,
         output_path,
     )

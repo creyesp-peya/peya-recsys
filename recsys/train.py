@@ -2,6 +2,8 @@ import argparse
 import json
 import logging
 import os
+os.environ["TF_CPP_MAX_VLOG_LEVEL"] = "3"  # NOQA: E402
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # NOQA: E402
 
 import dask.dataframe as dd
 import tensorflow as tf
@@ -69,7 +71,7 @@ def train_tensorflow_model(
     default_model_params = dict(
         batch_size=1024 * 1,
         epochs=1,
-        steps_per_epoch=None,
+        steps_per_epoch=10,
         loss_fn="MeanSquaredError",
         optimizer="Adam",
         learning_rate=0.001,
