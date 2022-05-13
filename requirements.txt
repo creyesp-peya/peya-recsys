@@ -1,4 +1,2 @@
-tensorflow==2.6.3
-tensorflow-recommenders==0.6.0
-scann==1.2.3
-dask==2022.2.0
+# the default package dependencies
+-r ./requirements/base.txt

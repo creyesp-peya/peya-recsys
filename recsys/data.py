@@ -29,18 +29,17 @@ def gcs_uri_to_fuse_path(
 
 
 def process_gcs_uri(uri: str) -> (str, str, str, str):
-    '''
-    Receives a Google Cloud Storage (GCS) uri and breaks it down to the scheme, bucket, path and file
+    """Receives a Google Cloud Storage (GCS) uri and breaks it down to the scheme, bucket, path and file
 
-            Parameters:
-                    uri (str): GCS uri
+    Args:
+        uri (str): GCS uri
 
-            Returns:
-                    scheme (str): uri scheme
-                    bucket (str): uri bucket
-                    path (str): uri path
-                    file (str): uri file
-    '''
+    Returns:
+        scheme (str): uri scheme
+        bucket (str): uri bucket
+        path (str): uri path
+        file (str): uri file
+    """
     url_arr = uri.split("/")
     if "." not in url_arr[-1]:
         file = ""
@@ -84,15 +83,6 @@ def create_dataset(
         dataset (TF Dataset): TF dataset where each element is a (features, labels)
             tuple that corresponds to a batch of CSV rows
     """
-
-    # shuffle & shuffle_buffer_size added to rearrange input data
-    # passed into model training
-    # num_rows_for_inference is for auto detection of datatypes
-    # while creating the dataset.
-    # If a float column has a high proportion of integer values (0/1 etc),
-    # the method wrongly detects it as a tf.int32 which fails during training time,
-    # hence the high hardcoded value (default is 100)
-
     if file_pattern:
         input_data = os.path.join(input_data, file_pattern)
 
@@ -104,8 +94,7 @@ def create_dataset(
         num_epochs=1,
         column_defaults=[tf.int32, tf.string],
         shuffle=False,
-        shuffle_buffer_size=1000,
-        num_rows_for_inference=20000,
+        num_rows_for_inference=100,
         num_parallel_reads=tf.data.AUTOTUNE,
         sloppy=True,
     )
