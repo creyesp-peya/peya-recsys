@@ -65,7 +65,7 @@ def train_tensorflow_model(
                 No of epochs to check for training loss convergence
         model_dir (str): output directory used to save model
     """
-    devices = tf.config.list_physical_devices('GPU')
+    devices = tf.config.list_physical_devices()
     logging.info(f"The current training job is using the following physical devices: {devices}")
     # prepare model params
     default_model_params = dict(
@@ -138,11 +138,11 @@ def train_tensorflow_model(
 
         export_model.export_tf_model(query_model_path, tf_model.query_model)
         export_model.export_tf_model(candidate_model_path, tf_model.candidate_model)
-        # export_model.export_index(
-        #     index_scann_model_path,
-        #     scann(tf_model.query_model, tf_model.candidate_model, item_ds),
-        #     use_scann=True
-        # )
+        export_model.export_index(
+            index_scann_model_path,
+            scann(tf_model.query_model, tf_model.candidate_model, item_ds),
+            use_scann=True
+        )
         export_model.export_index(
             index_bruteforce_model_path,
             brute_force(tf_model.query_model, tf_model.candidate_model, item_ds),
