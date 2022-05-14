@@ -4,16 +4,16 @@ import tensorflow as tf
 
 
 def export_index(output_path, index, use_scann=False):
-    @tf.function(input_signature=[tf.TensorSpec([None, ], dtype=tf.int32)])
-    def signature_default(input_1):
-        score, products = index.call(input_1)
+    @tf.function(input_signature=[tf.TensorSpec([None, ], dtype=tf.int32, name="user_id")])
+    def signature_default(user_id):
+        score, products = index.call(user_id)
         return {
             "scores": score,
             "items": products,
         }
 
     logging.info(f"Save model to: {output_path}")
-    tf.keras.models.save_model(
+    tf.saved_model.save(
         index,
         output_path,
         options=tf.saved_model.SaveOptions(namespace_whitelist=["Scann"]) if use_scann else None,

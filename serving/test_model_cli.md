@@ -1,7 +1,14 @@
 ```shell
 saved_model_cli run \
-    --dir /home/creyesp/DataspellProjects/mlp-project/data/dataset/models/index_bruteforce_model/ \
+    --dir . \
     --tag_set serve \
     --signature_def serving_default \
-    --input_exprs='input_1=[22]'
+    --input_exprs='user_id=[22]'
+```
+
+```shell
+saved_model_cli show \
+    --dir . \
+    --tag_set serve \
+    --signature_def serving_default
 ```
