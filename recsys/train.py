@@ -138,11 +138,11 @@ def train_tensorflow_model(
 
         export_model.export_tf_model(query_model_path, tf_model.query_model)
         export_model.export_tf_model(candidate_model_path, tf_model.candidate_model)
-        export_model.export_index(
-            index_scann_model_path,
-            scann(tf_model.query_model, tf_model.candidate_model, item_ds),
-            use_scann=True
-        )
+        # export_model.export_index(
+        #     index_scann_model_path,
+        #     scann(tf_model.query_model, tf_model.candidate_model, item_ds),
+        #     use_scann=True
+        # )
         export_model.export_index(
             index_bruteforce_model_path,
             brute_force(tf_model.query_model, tf_model.candidate_model, item_ds),

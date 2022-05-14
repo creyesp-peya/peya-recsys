@@ -66,5 +66,8 @@ setup(
     author='Analytic Factory',
     author_email='analytic.factory@pedidosya.com',
     packages=find_packages(),
+    python_requires=">=3.7",
     install_requires=_load_requirements(_PATH_REQUIRE),
+    extras_require=extras,
+    
 )

@@ -4,7 +4,7 @@ import tensorflow as tf
 import tensorflow_recommenders as tfrs
 
 
-def brute_force(query_model, candidate_model, item_ds, k=1000):
+def brute_force(query_model, candidate_model, item_ds, k=1000, input_shape=(None,)):
     bruteforce_index = tfrs.layers.factorized_top_k.BruteForce(
         query_model=query_model,
         k=k,
@@ -15,7 +15,8 @@ def brute_force(query_model, candidate_model, item_ds, k=1000):
             (item_ds.batch(100), item_ds.batch(100).map(candidate_model)))
     )
     bruteforce_index.call(tf.constant([42]))
-
+    bruteforce_index.predict(tf.constant([42]))
+    
     return bruteforce_index
 
 
